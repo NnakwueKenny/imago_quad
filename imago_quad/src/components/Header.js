@@ -12,9 +12,9 @@ const Header = (props) => {
                     {<button className='hidden'><i className='fa fa-chevron-left'></i></button>}
                 </div>
                 <div className='flex items-center gap-2'>
-                    <button className='flex justify-center items-center w-8 h-8 bg-white p-1 rounded-full'>
-                        <span className='text-sm text-green-500'><i className='fa fa-play'></i></span>
-                        <span className='hidden text-sm text-green-500'><i className='fa fa-pause'></i></span>
+                    <button onClick={props.togglePlay} className='flex justify-center items-center w-8 h-8 bg-white p-1 rounded-full'>
+                        <span className={`${props.playState && 'hidden'} text-sm text-green-500`}><i className='fa fa-play'></i></span>
+                        <span className={`${!props.playState && 'hidden'} text-sm text-green-500`}><i className='fa fa-pause'></i></span>
                     </button>
                     <button className='flex gap-x-1 px-1.5 py-1 bg-white rounded-xl'>
                         <span className='block text-sm pl-1 font-bold text-green-500 self-center'>{props.hintQuantity}</span>
