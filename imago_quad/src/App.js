@@ -2,7 +2,7 @@ import './App.css';
 import React from 'react';
 import GameData from './GameData';
 import Header from './components/Header';
-// import WinConfetti from './components/WinConfetti';
+import WinConfetti from './components/WinConfetti';
 
 const App = () => {
   const [gameValues, setGameValues] = React.useState(() => fromLocalStorage());
@@ -17,7 +17,7 @@ const App = () => {
       GameData.forEach(item => {
         gameIDs.push(item.id);
       });
-      const gameItemID = gameIDs[(Math.ceil(Math.random() * gameIDs.length))];
+      const gameItemID = gameIDs[(Math.floor(Math.random() * gameIDs.length))];
       const generatedIDs = [];
       generatedIDs.push(gameItemID);
       
@@ -42,6 +42,7 @@ const App = () => {
           console.log('Getat, na wrong option!')
         }
       }
+
       let inputDisplayValue = gameItemClass + additionalValues;
       let randomInputDisplayArray = []
       let inputDisplayArray = [];
@@ -70,10 +71,12 @@ const App = () => {
       const outputDisplayArray = Array(gameItemClass.length).fill('');
       
       return {
-        hintQuantity: 0,
+        coinQuantity: 30,
         playState: true,
         imgSrcs: imgSrcs,
         nextLevel: false,
+        gameLevel: 1,
+        gameIDs: gameIDs,
         gameItemID: gameItemID,
         levelReward: levelReward,
         generatedIDs: generatedIDs,
@@ -110,12 +113,16 @@ const App = () => {
     let currentOutputDisplayArray = gameValues.outputDisplayArray;
     let currentOutputDisplayValuesArray = gameValues.outputDisplayValuesArray;
     let targetID = Number(target.getAttribute('data-id'));
-    const currentHintQuantity = gameValues.hintQuantity;
+    let currentCoinQuantity = gameValues.coinQuantity;
 
     if (target.classList.contains('input-btn')) {
       if (target.classList.contains('hint')) {
         console.log('This is the hint button');
-        
+        if (currentCoinQuantity >= 20) {
+          currentCoinQuantity -= 20;
+        } else {
+          alert('Insufficient coins!')
+        }
       } else {
         let targetContent = target.textContent;
 
@@ -169,24 +176,157 @@ const App = () => {
     setGameValues(prevValues => {
       return {
         ...prevValues,
+        coinQuantity: currentCoinQuantity,
         inputDisplayArray: currentInputDisplayArray,
         outputDisplayArray: currentOutputDisplayArray,
         outputDisplayValuesArray: currentOutputDisplayValuesArray
       }
     })
+    validateGame();
+  }
+  
+  function nextLevel () {
+    const currentCoinQuantity = gameValues.coinQuantity;
+    const currentLevelReward = gameValues.levelReward;
+    let newCoinQuantity = currentCoinQuantity + currentLevelReward
+    setGameValues(prevValues => {
+      return {
+        ...prevValues,
+        nextLevel: !prevValues.nextLevel,
+        coinQuantity: newCoinQuantity
+        // gameLevel: prevValues.gameLevel + 1
+      }
+    })
+    newLevel();
+  }
+  
+  function newLevel () {
+    console.log('New Level Activated');
+    const currentGeneratedIDs = gameValues.generatedIDs;
+    console.log(gameValues.gameIDs)
+    if (currentGeneratedIDs.length <= gameValues.gameIDs.length) {
+      if (currentGeneratedIDs.length === gameValues.gameIDs.length) {
+        console.log('Game done finish')
+      } else {
+        let gameItemID;
+        const getRandomID = () => {
+          let randomID;
+          while (currentGeneratedIDs.length < gameValues.gameIDs.length) {
+            // if (currentGeneratedIDs.length === gameValues.gameIDs.length) {
+            //   console.log('Oh boy, comot body')
+            // } else {
+                randomID = gameValues.gameIDs[(Math.floor(Math.random() * gameValues.gameIDs.length))];
+                console.log(randomID)
+                if (currentGeneratedIDs.includes(randomID)) {
+                  getRandomID();
+                } else {
+                  gameItemID = randomID;
+                  break;
+                }
+            // }
+          }
+        }
+        getRandomID();
+        currentGeneratedIDs.push(gameItemID);
+
+        let currentGameItemClass;
+        let currentImgSrcs;
+        GameData.forEach(data => {
+          if (data.id === gameItemID) {
+            currentGameItemClass = data.class
+            currentImgSrcs = data.src
+          }
+        });
+
+        let additionalValuesPool = 'abcdefghijklmnopqrstuvwxyz';
+        let additionalValues = '';
+
+        while (additionalValues.length < 12 - currentGameItemClass.length) {
+          let randIndex = Math.floor(Math.random() * additionalValuesPool.length);
+          let value = additionalValuesPool.charAt(randIndex);
+          if (additionalValues.indexOf(value) === -1) {
+            additionalValues += value;
+          } else {
+            console.log('Getat, na wrong option!')
+          }
+        }
+
+        let inputDisplayValue = currentGameItemClass + additionalValues;
+        let randomInputDisplayArray = []
+        let inputDisplayArray = [];
+
+        while (randomInputDisplayArray.length < inputDisplayValue.length) {
+          let randIndex = Math.floor(Math.random() * inputDisplayValue.length);
+          if (randomInputDisplayArray.includes(randIndex)) {
+            console.log('Comot Body')
+          } else {
+            randomInputDisplayArray.push(randIndex);
+          }
+        }
+        
+        randomInputDisplayArray.forEach(item => {
+          inputDisplayArray.push(inputDisplayValue.charAt(item));
+        });
+
+        let levelReward;
+        if (currentGameItemClass.length <= 3) {
+          levelReward = 4;
+        } else if (currentGameItemClass.length > 4 && currentGameItemClass.length <= 6) {
+          levelReward = 6;
+        } else if (currentGameItemClass.length > 6) { levelReward = 12}
+        
+        let outputDisplayValuesArray = Array(currentGameItemClass.length).fill('');
+        const outputDisplayArray = Array(currentGameItemClass.length).fill('');
+
+        setGameValues(prevValues => {
+          return {
+            ...prevValues,
+            playState: !gameValues.gameState,
+            gameItemID: gameItemID,
+            gameItemClass: currentGameItemClass,
+            imgSrcs: currentImgSrcs,
+            gameLevel: prevValues.gameLevel + 1,
+            generatedIDs: currentGeneratedIDs,
+            inputDisplayArray: inputDisplayArray,
+            outputDisplayArray: outputDisplayArray,
+            outputDisplayValuesArray: outputDisplayValuesArray
+          }
+        })
+      }
+    }
+  }
+
+  function validateGame () {
+    let outputDisplayValue = '';
+    gameValues.outputDisplayArray.forEach(item => {
+      if (typeof item === 'object')
+      outputDisplayValue += item.value;
+    })
+    if (outputDisplayValue === gameValues.gameItemClass) {
+      setTimeout(() => {
+        setGameValues(prevValues => {
+          return {
+            ...prevValues,
+            nextLevel: !prevValues.nextLevel,
+            playState: !prevValues.playState,
+          }
+        })
+      }, 700);
+    }
   }
 
   return (
       <div className='App flex flex-col h-screen overflow-y-auto'>
         <Header
-          hintQuantity = {gameValues.hintQuantity}
           togglePlay = {togglePlay}
+          gameLevel = {gameValues.gameLevel}
           playState = {gameValues.playState}
+          coinQuantity = {gameValues.coinQuantity}
         />
-        {/* <WinConfetti /> */}
+        { !gameValues.playState && gameValues.nextLevel && <WinConfetti /> }
         {/* MainPage SECTION STARTS HERE*/}
           {
-            !gameValues.playState &&
+            !gameValues.playState && !gameValues.nextLevel &&
             <div className={`MainPage flex flex-col h-3/5 justify-center items-center pt-20`}>
               <div className='relative'>
                 <div className='PictureGrid max-w-xl grid gap-2 px-8 grid-cols-2'>
@@ -197,7 +337,7 @@ const App = () => {
                     })}
                 </div>
                 <div className='absolute top-0 left-0 flex justify-center items-center h-full w-full'>
-                  <span className='animate-pulse flex justify-center items-center h-12 w-12 text-green-500 bg-white rounded-full border-2 border-green-400'>0</span>
+                  <span className='animate-pulse flex justify-center items-center h-12 w-12 text-green-500 bg-white rounded-full border-2 border-green-400'>{gameValues.gameLevel}</span>
                 </div>
               </div>
               <div className='w-full px-8 py-4'>
@@ -263,7 +403,7 @@ const App = () => {
 
         {/* NextLevel SECTION STARTS HERE*/}
           {
-            !gameValues.playState && gameValues.nextLevel &&
+            gameValues.nextLevel &&
             <div className='NextLevel flex flex-col h-full justify-center'>
               <div className='flex flex-col justify-between w-full h-4/5 max-w-3xl'>
                 <div className='text-green-500 text-xl font-semibold'><span>Level Passed</span></div>
@@ -279,7 +419,7 @@ const App = () => {
                   <button className='block w-7 h-7 text-sm font-semibold text-green-500 hover:text-green-50 hover:bg-green-500 border border-green-500 rounded'>1</button>
                 </div>
                 <div className='flex justify-center text-green-500 text-xl font-semibold'>
-                  <button className='w-32 py-1 font-semibold rounded border border-green-500'>Next Level</button>
+                  <button onClick={() => nextLevel()} className='w-32 py-1 font-semibold rounded border border-green-500'>Next Level</button>
                 </div>
               </div>
             </div>

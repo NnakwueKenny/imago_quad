@@ -17,13 +17,13 @@ const Header = (props) => {
                         <span className={`${!props.playState && 'hidden'} text-sm text-green-500`}><i className='fa fa-pause'></i></span>
                     </button>
                     <button className='flex gap-x-1 px-1.5 py-1 bg-white rounded-xl'>
-                        <span className='block text-sm pl-1 font-bold text-green-500 self-center'>{props.hintQuantity}</span>
+                        <span className='block text-sm pl-1 font-bold text-green-500 self-center'>{props.coinQuantity}</span>
                         <span className='block text-sm px-1 font-bold text-yellow-500 self-center'><i className='fa fa-coins'></i></span>
                         <span className='text-sm text-green-500 font-semibold self-center'><i className='fa fa-plus'></i></span>
                     </button>
                 </div>
                 <div className='absolute flex justify-center w-full -bottom-6 left-0'>
-                    <span className='flex justify-center items-center w-12 h-12 text-green-500 bg-white shadow shadow-green-500 rounded-full'>0</span>
+                    <span className='flex justify-center items-center w-12 h-12 text-green-500 bg-white shadow shadow-green-500 rounded-full'>{props.gameLevel}</span>
                 </div>
             </div>
         </header>
