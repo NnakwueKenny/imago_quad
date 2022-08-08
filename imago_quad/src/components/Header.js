@@ -23,7 +23,10 @@ const Header = (props) => {
                     </button>
                 </div>
                 <div className='absolute flex justify-center w-full -bottom-6 left-0'>
-                    <span className='flex justify-center items-center w-12 h-12 text-green-500 bg-white shadow shadow-green-500 rounded-full'>{props.gameLevel}</span>
+                    {
+                        props.playState &&
+                        <span className='flex justify-center items-center w-12 h-12 text-green-500 bg-white shadow shadow-green-500 rounded-full'>{props.gameLevel}</span>
+                    }
                 </div>
             </div>
         </header>

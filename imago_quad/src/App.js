@@ -1,12 +1,14 @@
 import './App.css';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 import React from 'react';
 import GameData from './GameData';
 import Header from './components/Header';
 import WinConfetti from './components/WinConfetti';
 
 const App = () => {
+  AOS.init();
   const [gameValues, setGameValues] = React.useState(() => fromLocalStorage());
-
   function fromLocalStorage () {
     const fromLocal = localStorage.getItem('gameValues');
     if (fromLocal) {
@@ -61,7 +63,7 @@ const App = () => {
       });
 
       let levelReward = 0;
-      if (gameItemClass.length <= 3) {
+      if (gameItemClass.length <= 4) {
         levelReward = 4;
       } else if (gameItemClass.length > 4 && gameItemClass.length <= 6) {
         levelReward = 6;
@@ -77,6 +79,7 @@ const App = () => {
         nextLevel: false,
         gameLevel: 1,
         gameIDs: gameIDs,
+        gameEndsState: false,
         gameItemID: gameItemID,
         levelReward: levelReward,
         generatedIDs: generatedIDs,
@@ -119,6 +122,67 @@ const App = () => {
       if (target.classList.contains('hint')) {
         console.log('This is the hint button');
         if (currentCoinQuantity >= 20) {
+          let counter = 0;
+          while (currentOutputDisplayArray.length <= currentGameItemClass.length) {
+            let holder;
+            const selectedOutputItem = currentOutputDisplayArray[counter];
+            const expectedInput = currentGameItemClass.charAt(counter);
+            console.log(expectedInput);
+            if ((selectedOutputItem.value === expectedInput) || (selectedOutputItem === expectedInput)) {
+              console.log(selectedOutputItem.value);
+              counter++;
+              console.log(counter)
+            } else {
+              holder = expectedInput;
+              let inputBtns = [];
+              let outputBtns = [];
+              document.querySelectorAll('.input-btn')
+              .forEach(btn => {
+                inputBtns.push(btn);
+              });
+              document.querySelectorAll('.output-btn')
+              .forEach(btn => {
+                outputBtns.push(btn);
+              });
+              let selectedInputBtn;
+              let selectedOutputBtn = outputBtns[counter];
+              let inputBtnCounter = 0;
+              let misplacedOutput;
+              let misplacedOutputCounter = 0;
+              while(inputBtns) {
+                if (inputBtnCounter === inputBtns.length-1) {
+                  console.log('E don finish');
+                  break;
+                }
+                if (inputBtns[inputBtnCounter].textContent === expectedInput) {
+                  selectedInputBtn = inputBtns[inputBtnCounter];
+                  selectedOutputBtn.click();
+                  selectedInputBtn.click();
+                  break;
+                } else {
+                  inputBtnCounter++;
+                  console.log('Counter don increase!')
+                }
+                while (outputBtns) {
+                  if (misplacedOutputCounter === outputBtns.length-1) {
+                    console.log('E don finish');
+                    break;
+                  }
+                  console.log(outputBtns[0].textContent)
+                  misplacedOutput = outputBtns[misplacedOutputCounter];
+                  console.log(misplacedOutput)
+                  if ((outputBtns[misplacedOutputCounter].textContent === expectedInput) && (!currentInputDisplayArray.includes(expectedInput))) {
+                    misplacedOutput.click();
+                    break;
+                  } else {
+                    misplacedOutputCounter++;
+                    console.log('Counter don increase!')
+                  }
+                }
+              }
+              break;
+            }
+          }
           currentCoinQuantity -= 20;
         } else {
           alert('Insufficient coins!')
@@ -196,37 +260,48 @@ const App = () => {
         coinQuantity: newCoinQuantity
         // gameLevel: prevValues.gameLevel + 1
       }
-    })
-    newLevel();
+    });
+    setTimeout(() => {
+      newLevel();
+    },500)
   }
   
   function newLevel () {
-    console.log('New Level Activated');
+    const gameIDs = gameValues.gameIDs;
+    let currentGameEndsState = gameValues.gameEndsState;
     const currentGeneratedIDs = gameValues.generatedIDs;
-    console.log(gameValues.gameIDs)
-    if (currentGeneratedIDs.length <= gameValues.gameIDs.length) {
-      if (currentGeneratedIDs.length === gameValues.gameIDs.length) {
+    if (currentGeneratedIDs.length <= gameIDs.length) {
+      console.log('New Level Activated');
+      if (currentGeneratedIDs.length === gameIDs.length) {
+        currentGameEndsState = !currentGameEndsState
+        setGameValues(prevValues => {
+          return {
+            ...prevValues,
+            gameEndsState: currentGameEndsState,
+          }
+        })
+
         console.log('Game done finish')
       } else {
         let gameItemID;
-        const getRandomID = () => {
+        (function getRandomID () {
           let randomID;
-          while (currentGeneratedIDs.length < gameValues.gameIDs.length) {
-            // if (currentGeneratedIDs.length === gameValues.gameIDs.length) {
-            //   console.log('Oh boy, comot body')
-            // } else {
-                randomID = gameValues.gameIDs[(Math.floor(Math.random() * gameValues.gameIDs.length))];
-                console.log(randomID)
+          while (currentGeneratedIDs.length <= gameIDs.length) {
+            if (currentGeneratedIDs.length === gameIDs.length) {
+              console.log('Oh boy, comot body');
+              break;
+            } else {
+                randomID = gameIDs[(Math.floor(Math.random() * gameIDs.length))];
+                console.log(typeof randomID)
                 if (currentGeneratedIDs.includes(randomID)) {
-                  getRandomID();
+                  console.log(randomID)
                 } else {
                   gameItemID = randomID;
                   break;
                 }
-            // }
+            }
           }
-        }
-        getRandomID();
+        })()
         currentGeneratedIDs.push(gameItemID);
 
         let currentGameItemClass;
@@ -285,6 +360,7 @@ const App = () => {
             gameItemID: gameItemID,
             gameItemClass: currentGameItemClass,
             imgSrcs: currentImgSrcs,
+            levelReward: levelReward,
             gameLevel: prevValues.gameLevel + 1,
             generatedIDs: currentGeneratedIDs,
             inputDisplayArray: inputDisplayArray,
@@ -313,6 +389,7 @@ const App = () => {
         })
       }, 700);
     }
+    console.log('Game Validated!')
   }
 
   return (
@@ -327,7 +404,14 @@ const App = () => {
         {/* MainPage SECTION STARTS HERE*/}
           {
             !gameValues.playState && !gameValues.nextLevel &&
-            <div className={`MainPage flex flex-col h-3/5 justify-center items-center pt-20`}>
+            <div
+              data-aos="zoom-in"
+              data-aos-anchor="#example-anchor"
+              data-aos-offset="500"
+              data-aos-duration="800"
+              data-aos-delay= "200"
+              className={`MainPage flex flex-col h-3/5 justify-center items-center pt-20`}
+            >
               <div className='relative'>
                 <div className='PictureGrid max-w-xl grid gap-2 px-8 grid-cols-2'>
                   {gameValues.imgSrcs.map((imgSrc, index) => {
@@ -350,7 +434,14 @@ const App = () => {
         {/* GamePanel SECTION STARTS HERE*/}
           {
             gameValues.playState &&
-            <div className='GamePanel'>
+            <div
+              data-aos="zoom-out"
+              data-aos-anchor="#example-anchor"
+              data-aos-offset="500"
+              data-aos-duration="800"
+              data-aos-delay= "200"
+              className='GamePanel'
+              >
               <div className='flex flex-col lg:flex-row h-full justify-center items-center gap-y-4 md:gap-8 px-4'>
                 {/* PictureGrid SECTION STARTS HERE*/}
                   <div className='PictureGrid max-w-xl grid gap-4 px-4 grid-cols-2'>
@@ -407,19 +498,81 @@ const App = () => {
             <div className='NextLevel flex flex-col h-full justify-center'>
               <div className='flex flex-col justify-between w-full h-4/5 max-w-3xl'>
                 <div className='text-green-500 text-xl font-semibold'><span>Level Passed</span></div>
-                <div className='flex flex-col text-green-500 text-xl font-semibold'>
-                  <span>0</span>
+                <div
+                  data-aos="zoom-in"
+                  data-aos-delay= ' '
+                  data-aos-anchor="#example-anchor"
+                  data-aos-offset={`${500}`}
+                  data-aos-duration="500"
+                  className='flex flex-col text-green-500 text-xl font-semibold'
+                  >
+                  <span>{gameValues.levelReward}</span>
                   <span className='text-yellow-500'><i className='fa fa-coins'></i><i className='fa fa-coins'></i></span>
                 </div>
-                <div className='flex justify-center gap-x-1.5 text-green-500 text-xl font-semibold'>
-                  <button className='block w-7 h-7 text-sm font-semibold text-green-500 hover:text-green-50 hover:bg-green-500 border border-green-500 rounded'>1</button>
-                  <button className='block w-7 h-7 text-sm font-semibold text-green-500 hover:text-green-50 hover:bg-green-500 border border-green-500 rounded'>1</button>
-                  <button className='block w-7 h-7 text-sm font-semibold text-green-500 hover:text-green-50 hover:bg-green-500 border border-green-500 rounded'>1</button>
-                  <button className='block w-7 h-7 text-sm font-semibold text-green-500 hover:text-green-50 hover:bg-green-500 border border-green-500 rounded'>1</button>
-                  <button className='block w-7 h-7 text-sm font-semibold text-green-500 hover:text-green-50 hover:bg-green-500 border border-green-500 rounded'>1</button>
+                <div
+                  className='flex justify-center gap-x-1.5 text-green-500 text-xl font-semibold'
+                  >
+                {
+                  gameValues.outputDisplayValuesArray.map((item, index) => {
+                    return (
+                      <button
+                              key={index}
+                              data-aos="fade-up-right"
+                              data-aos-delay= {`${index*50}`}
+                              data-aos-anchor="game-answer"
+                              data-aos-offset={`${50}`}
+                              data-aos-duration="500"
+                              className='uppercase font-bold block w-7 h-7 text-sm font-semibold text-green-500 hover:text-green-50 hover:bg-green-500 border border-green-500 rounded'
+                            >{item.value}</button>
+                    )
+                  })
+                }
                 </div>
                 <div className='flex justify-center text-green-500 text-xl font-semibold'>
-                  <button onClick={() => nextLevel()} className='w-32 py-1 font-semibold rounded border border-green-500'>Next Level</button>
+                  <button
+                    onClick={() => nextLevel()} 
+                    className='w-32 py-1 font-semibold rounded border border-green-500'
+                  >Next Level</button>
+                </div>
+              </div>
+            </div>
+          }
+        {/* NextLevel SECTION ENDS HERE*/}{/* NextLevel SECTION STARTS HERE*/}
+          {
+            gameValues.gameEndsState &&
+            <div className='NextLevel flex flex-col h-full justify-center'>
+              <div className='flex flex-col justify-between w-full h-4/5 max-w-3xl'>
+                <div className='text-green-500 text-xl font-semibold'><span>Level Passed</span></div>
+                <div
+                  data-aos="zoom-in"
+                  data-aos-delay= ' '
+                  data-aos-anchor="#example-anchor"
+                  data-aos-offset={`${500}`}
+                  data-aos-duration="500"
+                  className='flex flex-col items-center text-green-500 text-xl font-semibold'
+                  >
+                  <span className='flex justify-center px-2 py-1 border-2 border-green-500 rounded-md'>Game Ends</span>
+                </div>
+                <div
+                  className='flex justify-center gap-x-1.5 text-green-500 text-xl font-semibold'
+                  >
+                {
+                  /*
+                  gameValues.outputDisplayValuesArray.map((item, index) => {
+                    return (
+                      <button
+                              key={index}
+                              data-aos="fade-up-right"
+                              data-aos-delay= {`${index*50}`}
+                              data-aos-anchor="game-answer"
+                              data-aos-offset={`${50}`}
+                              data-aos-duration="500"
+                              className='uppercase font-bold block w-7 h-7 text-sm font-semibold text-green-500 hover:text-green-50 hover:bg-green-500 border border-green-500 rounded'
+                            >{item.value}</button>
+                    )
+                  })
+                  */
+                }
                 </div>
               </div>
             </div>
