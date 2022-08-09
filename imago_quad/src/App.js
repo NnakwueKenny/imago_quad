@@ -7,12 +7,17 @@ import Header from './components/Header';
 import WinConfetti from './components/WinConfetti';
 
 const App = () => {
-  AOS.init();
+  AOS.init();     // Initializing 'Animate on scroll
   const [gameValues, setGameValues] = React.useState(() => fromLocalStorage());
+  
+  const restartGame = () => {
+    localStorage.removeItem('gameValues');
+    setGameValues(fromLocalStorage());
+  }
+
   function fromLocalStorage () {
     const fromLocal = localStorage.getItem('gameValues');
     if (fromLocal) {
-      // console.log(JSON.parse(fromLocal).gameItemClass);
       return JSON.parse(fromLocal);
     } else if (fromLocal === null) {
       const gameIDs = [];
@@ -41,7 +46,7 @@ const App = () => {
         if (additionalValues.indexOf(value) === -1) {
           additionalValues += value;
         } else {
-          console.log('Getat, na wrong option!')
+          // console.log('Getat, na wrong option!')
         }
       }
 
@@ -52,7 +57,7 @@ const App = () => {
       while (randomInputDisplayArray.length < inputDisplayValue.length) {
         let randIndex = Math.floor(Math.random() * inputDisplayValue.length);
         if (randomInputDisplayArray.includes(randIndex)) {
-          console.log('Comot Body')
+          // console.log('Comot Body')
         } else {
           randomInputDisplayArray.push(randIndex);
         }
@@ -73,7 +78,7 @@ const App = () => {
       const outputDisplayArray = Array(gameItemClass.length).fill('');
       
       return {
-        coinQuantity: 30,
+        coinQuantity: 50,
         playState: true,
         imgSrcs: imgSrcs,
         nextLevel: false,
@@ -100,13 +105,15 @@ const App = () => {
     })
   }
 
-  function updateGame () {
-    localStorage.setItem('gameValues', JSON.stringify(gameValues));
-  }
+  
   React.useEffect(() => {
-    console.log('Justing testing useEffect');
+    console.log('useEffect started');
+    function updateGame () {
+      localStorage.setItem('gameValues', JSON.stringify(gameValues));
+    }
     updateGame();
     // localStorage.clear()
+    console.log('useEffect ended');
   }, [gameValues]);
 
   const modifyGame = (e) => {
@@ -120,20 +127,16 @@ const App = () => {
 
     if (target.classList.contains('input-btn')) {
       if (target.classList.contains('hint')) {
-        console.log('This is the hint button');
         if (currentCoinQuantity >= 20) {
           let counter = 0;
           while (currentOutputDisplayArray.length <= currentGameItemClass.length) {
             let holder;
             const selectedOutputItem = currentOutputDisplayArray[counter];
             const expectedInput = currentGameItemClass.charAt(counter);
-            console.log(expectedInput);
             if ((selectedOutputItem.value === expectedInput) || (selectedOutputItem === expectedInput)) {
-              console.log(selectedOutputItem.value);
               counter++;
-              console.log(counter)
             } else {
-              holder = expectedInput;
+              // holder = expectedInput;
               let inputBtns = [];
               let outputBtns = [];
               document.querySelectorAll('.input-btn')
@@ -151,7 +154,7 @@ const App = () => {
               let misplacedOutputCounter = 0;
               while(inputBtns) {
                 if (inputBtnCounter === inputBtns.length-1) {
-                  console.log('E don finish');
+                  // console.log('E don finish');
                   break;
                 }
                 if (inputBtns[inputBtnCounter].textContent === expectedInput) {
@@ -161,16 +164,14 @@ const App = () => {
                   break;
                 } else {
                   inputBtnCounter++;
-                  console.log('Counter don increase!')
+                  // console.log('Counter don increase!')
                 }
                 while (outputBtns) {
                   if (misplacedOutputCounter === outputBtns.length-1) {
-                    console.log('E don finish');
+                    // console.log('E don finish');
                     break;
                   }
-                  console.log(outputBtns[0].textContent)
                   misplacedOutput = outputBtns[misplacedOutputCounter];
-                  console.log(misplacedOutput)
                   if ((outputBtns[misplacedOutputCounter].textContent === expectedInput) && (!currentInputDisplayArray.includes(expectedInput))) {
                     misplacedOutput.click();
                     break;
@@ -193,8 +194,7 @@ const App = () => {
         if (target.textContent !== '') {
           let holder = -1;
           while (holder < currentInputDisplayArray.length) {
-            if (currentOutputDisplayArray[holder +1 ] != '') {
-              console.log('Something is worng')
+            if (currentOutputDisplayArray[holder +1 ] !== '') {
               holder++;
             } else {
               currentOutputDisplayArray[holder +1 ] = {
@@ -257,8 +257,6 @@ const App = () => {
       return {
         ...prevValues,
         nextLevel: !prevValues.nextLevel,
-        coinQuantity: newCoinQuantity
-        // gameLevel: prevValues.gameLevel + 1
       }
     });
     setTimeout(() => {
@@ -288,13 +286,12 @@ const App = () => {
           let randomID;
           while (currentGeneratedIDs.length <= gameIDs.length) {
             if (currentGeneratedIDs.length === gameIDs.length) {
-              console.log('Oh boy, comot body');
+              // console.log('Oh boy, comot body');
               break;
             } else {
                 randomID = gameIDs[(Math.floor(Math.random() * gameIDs.length))];
-                console.log(typeof randomID)
                 if (currentGeneratedIDs.includes(randomID)) {
-                  console.log(randomID)
+                  // console.log(randomID)
                 } else {
                   gameItemID = randomID;
                   break;
@@ -322,7 +319,7 @@ const App = () => {
           if (additionalValues.indexOf(value) === -1) {
             additionalValues += value;
           } else {
-            console.log('Getat, na wrong option!')
+            // console.log('Getat, na wrong option!')
           }
         }
 
@@ -343,16 +340,19 @@ const App = () => {
           inputDisplayArray.push(inputDisplayValue.charAt(item));
         });
 
-        let levelReward;
+        let levelReward = 0;
         if (currentGameItemClass.length <= 3) {
           levelReward = 4;
         } else if (currentGameItemClass.length > 4 && currentGameItemClass.length <= 6) {
           levelReward = 6;
-        } else if (currentGameItemClass.length > 6) { levelReward = 12}
+        } else if (currentGameItemClass.length > 6) { levelReward = 12};
+        
+        let currentCoinQuantity = gameValues.coinQuantity;
+        const newCoinQuantity = currentCoinQuantity + levelReward
         
         let outputDisplayValuesArray = Array(currentGameItemClass.length).fill('');
         const outputDisplayArray = Array(currentGameItemClass.length).fill('');
-
+        console.log()
         setGameValues(prevValues => {
           return {
             ...prevValues,
@@ -361,6 +361,7 @@ const App = () => {
             gameItemClass: currentGameItemClass,
             imgSrcs: currentImgSrcs,
             levelReward: levelReward,
+            coinQuantity: newCoinQuantity,
             gameLevel: prevValues.gameLevel + 1,
             generatedIDs: currentGeneratedIDs,
             inputDisplayArray: inputDisplayArray,
@@ -389,7 +390,7 @@ const App = () => {
         })
       }, 700);
     }
-    console.log('Game Validated!')
+    // console.log('Game Validated!')
   }
 
   return (
@@ -403,7 +404,7 @@ const App = () => {
         { !gameValues.playState && gameValues.nextLevel && <WinConfetti /> }
         {/* MainPage SECTION STARTS HERE*/}
           {
-            !gameValues.playState && !gameValues.nextLevel &&
+            !gameValues.playState && !gameValues.nextLevel && !gameValues.gameEndsState &&
             <div
               data-aos="zoom-in"
               data-aos-anchor="#example-anchor"
@@ -554,25 +555,15 @@ const App = () => {
                   <span className='flex justify-center px-2 py-1 border-2 border-green-500 rounded-md'>Game Ends</span>
                 </div>
                 <div
-                  className='flex justify-center gap-x-1.5 text-green-500 text-xl font-semibold'
-                  >
-                {
-                  /*
-                  gameValues.outputDisplayValuesArray.map((item, index) => {
-                    return (
-                      <button
-                              key={index}
-                              data-aos="fade-up-right"
-                              data-aos-delay= {`${index*50}`}
-                              data-aos-anchor="game-answer"
-                              data-aos-offset={`${50}`}
-                              data-aos-duration="500"
-                              className='uppercase font-bold block w-7 h-7 text-sm font-semibold text-green-500 hover:text-green-50 hover:bg-green-500 border border-green-500 rounded'
-                            >{item.value}</button>
-                    )
-                  })
-                  */
-                }
+                  data-aos="zoom-in"
+                  data-aos-delay= ' '
+                  data-aos-anchor="#example-anchor"
+                  data-aos-offset={`${500}`}
+                  data-aos-duration="500"
+                  onClick={restartGame}
+                  className='flex flex-col items-center text-green-500 text-xl font-semibold'
+                >
+                  <button className='flex justify-center px-2 py-1 border-2 border-green-500 rounded-md'>Start Afresh</button>
                 </div>
               </div>
             </div>
