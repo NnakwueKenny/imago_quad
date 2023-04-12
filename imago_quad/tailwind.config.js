@@ -8,7 +8,8 @@ module.exports = {
 			fontFamily: {
 				poppins: ['Poppins', 'sans-serif'],
 				ribeye: ['RibeyeRegular', 'sans-serif'],
-				earwig: ['Earwig', 'sans-serif']
+				earwig: ['Earwig', 'sans-serif'],
+				Gochi: ["'Gochi Hand'", "cursive"],
 			},
     },
   },
