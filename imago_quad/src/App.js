@@ -6,7 +6,7 @@ import GameData from './GameData';
 import Header from './components/Header';
 import WinConfetti from './components/WinConfetti';
 
-const App = () => {
+const ImagoQuadIndex = () => {
   AOS.init();     // Initializing 'Animate on scroll
   const [gameValues, setGameValues] = React.useState(() => fromLocalStorage());
   
@@ -79,7 +79,7 @@ const App = () => {
       
       return {
         coinQuantity: 50,
-        playState: true,
+        playState: false,
         imgSrcs: imgSrcs,
         nextLevel: false,
         gameLevel: 1,
@@ -127,7 +127,7 @@ const App = () => {
 
     if (target.classList.contains('input-btn')) {
       if (target.classList.contains('hint')) {
-        if (currentCoinQuantity >= 20) {
+        if (currentCoinQuantity >= 5) {
           let counter = 0;
           while (currentOutputDisplayArray.length <= currentGameItemClass.length) {
             let holder;
@@ -184,7 +184,7 @@ const App = () => {
               break;
             }
           }
-          currentCoinQuantity -= 20;
+          currentCoinQuantity -= 5;
         } else {
           alert('Insufficient coins!')
         }
@@ -336,19 +336,20 @@ const App = () => {
           }
         }
         
+        let currentCoinQuantity = gameValues.coinQuantity;
+        let currentLevelReward = gameValues.levelReward;
+        const newCoinQuantity = currentCoinQuantity + currentLevelReward;
+        
         randomInputDisplayArray.forEach(item => {
           inputDisplayArray.push(inputDisplayValue.charAt(item));
         });
 
         let levelReward = 0;
-        if (currentGameItemClass.length <= 3) {
+        if (currentGameItemClass.length <= 4) {
           levelReward = 4;
         } else if (currentGameItemClass.length > 4 && currentGameItemClass.length <= 6) {
           levelReward = 6;
         } else if (currentGameItemClass.length > 6) { levelReward = 12};
-        
-        let currentCoinQuantity = gameValues.coinQuantity;
-        const newCoinQuantity = currentCoinQuantity + levelReward
         
         let outputDisplayValuesArray = Array(currentGameItemClass.length).fill('');
         const outputDisplayArray = Array(currentGameItemClass.length).fill('');
@@ -394,7 +395,7 @@ const App = () => {
   }
 
   return (
-      <div className='App flex flex-col h-screen overflow-y-auto'>
+      <div style={{fontFamily: 'Gochi Hand'}} className='App flex flex-col h-screen overflow-y-auto relative'>
         <Header
           togglePlay = {togglePlay}
           gameLevel = {gameValues.gameLevel}
@@ -476,7 +477,7 @@ const App = () => {
                         }
                         </div>
                         <div>
-                          <button onClick={modifyGame} className='input-btn hint flex flex-col justify-center items-center w-8 h-16 text-red-500 bg-white border border-red-500 rounded'>
+                          <button disabled={gameValues.coinQuantity < 20 ? true: false} onClick={modifyGame} className='input-btn hint flex flex-col justify-center items-center w-8 h-16 text-red-500 bg-white border border-red-500 rounded'>
                               <span className='text-xs font-semibold italic'>Hint</span>
                               <div className='flex flex-col'>
                                 <span className='block text-xs'>-20</span>
@@ -496,7 +497,7 @@ const App = () => {
         {/* NextLevel SECTION STARTS HERE*/}
           {
             gameValues.nextLevel &&
-            <div className='NextLevel flex flex-col h-full justify-center'>
+            <div className='NextLevel flex flex-col h-full w-full items-center justify-center'>
               <div className='flex flex-col justify-between w-full h-4/5 max-w-3xl'>
                 <div className='text-green-500 text-xl font-semibold'><span>Level Passed</span></div>
                 <div
@@ -573,4 +574,4 @@ const App = () => {
   );
 }
 
-export default App;
+export default ImagoQuadIndex;
